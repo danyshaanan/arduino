@@ -1,8 +1,8 @@
 
 #include <math.h>
 
-const int pButtonPin = 3; // v <->  plus button <-> this <-> 10k resistor <-> groud
-const int mButtonPin = 4; // v <-> minus button <-> this <-> 10k resistor <-> groud
+const int pButtonPin = 3; // this+PULLUP <->  plus button <-> groud
+const int mButtonPin = 4; // this+PULLUP <->  plus button <-> groud
 const int ledPin = 5;     // this <-> 330 resistor <-> led <-> ground
 
 const double cycleTime = 18;
@@ -19,16 +19,17 @@ double t = 0;
 
 void setup() {
   if (verbose == 1) Serial.begin(9600);
-  pinMode(mButtonPin, INPUT);
-  pinMode(pButtonPin, INPUT);
   pinMode(ledPin, OUTPUT);
+  pinMode(mButtonPin, INPUT_PULLUP);
+  pinMode(pButtonPin, INPUT_PULLUP);
+
 }
 
 void loop() {
-  if (digitalRead(mButtonPin)) hb -= hbChangePerLoop;
-  if (digitalRead(pButtonPin)) hb += hbChangePerLoop;
+  if (!digitalRead(mButtonPin)) hb -= hbChangePerLoop;
+  if (!digitalRead(pButtonPin)) hb += hbChangePerLoop;
   hb = max(minPulse, min(hb, maxPulse));
-  if (verbose == 1) Serial.println(hb);
+  if (verbose) Serial.println(hb);
   
   analogWrite(ledPin, 255 * pow(sin(t)/2+0.5, 4));
   
