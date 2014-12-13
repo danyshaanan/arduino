@@ -1,7 +1,7 @@
 
 #include <math.h>       /* sin */
 
-const int led = 9;
+const int led = 9; // must be a pwm pin.
 const double tau = 2 * 3.14159265359;
 
 /////////////////////////////
