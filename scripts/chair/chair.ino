@@ -3,7 +3,7 @@
 
 const int sysLed = 13;    // default digital led, onboard.
 const int fadeLed = 9;    // this <-> 330 resistor <-> led <-> ground
-const int sensorPin = A5; // sensorLegOfPhotoTransistor <-> this <-> 1k resistor <-> power
+const int sensorPin = A5; // sensorLegOfPhotoTransistor <-> this <-> 5k resistor <-> power
                           // powerLegOfPhotoTransistor <-> 240 resistor <-> power
                           // groundLegsOfPhotoTransistor <-> ground
 
@@ -21,8 +21,8 @@ void setup()  {
 } 
 
 void loop()  {
-  int inUse = analogRead(sensorPin) < 400;
-//  if (verbose) Serial.begin(9600);
+  int inUse = analogRead(sensorPin) < 700;
+  if (verbose) Serial.println(analogRead(sensorPin));
   lightness += cycle * (inUse ? 0.0007 : -0.0001);
   lightness = max(0, min(lightness, 1));
   analogWrite(fadeLed, lightness * 255);
