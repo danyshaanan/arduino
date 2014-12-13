@@ -1,7 +1,6 @@
 
 #include <math.h>
 
-const int sysLed = 13;    // default digital led, onboard.
 const int fadeLed = 9;    // this <-> 330 resistor <-> led <-> ground
 const int sensorPin = A5; // sensorLegOfPhotoTransistor <-> this <-> 5k resistor <-> power
                           // powerLegOfPhotoTransistor <-> 240 resistor <-> power
@@ -14,11 +13,11 @@ double lightness = 0;
 
 /////////////////////////////
 
-void setup()  { 
+void setup()  {
   if (verbose) Serial.begin(9600);
-  pinMode(sysLed, OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   pinMode(fadeLed, OUTPUT);
-} 
+}
 
 void loop()  {
   int inUse = analogRead(sensorPin) < 700;
@@ -26,7 +25,6 @@ void loop()  {
   lightness += cycle * (inUse ? 0.0007 : -0.0001);
   lightness = max(0, min(lightness, 1));
   analogWrite(fadeLed, lightness * 255);
-  digitalWrite(sysLed, inUse);
+  digitalWrite(LED_BUILTIN, inUse);
   delay(cycle);
 }
-
