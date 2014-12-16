@@ -1,0 +1,1 @@
+* * * * * curl localhost:3000 >> /Users/dany/projects/arduino/j5/data.txt
