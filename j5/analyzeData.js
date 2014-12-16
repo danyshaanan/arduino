@@ -24,22 +24,29 @@ data.forEach(function(i) {
 }) //Muhahahaha
 
 
-var size = {
-  time: process.stdout.columns - 1,
-  temp: process.stdout.rows - 1
+function Image(x, y) {
+  this.size = [y, x]
+  this.grid = arrayOf(y+1).map(function(){return arrayOf(x+1).map(function(){return ' '})})
+  this.set = function(coordinates, value) {
+    this.grid[coordinates[0]][coordinates[1]] = value
+  }
+  this.plot = function() {
+    return this.grid.map(function(row){return row.join('')}).join('\n')
+  }
 }
 
-var image = arrayOf(size.temp+1).map(function(){return arrayOf(size.time+1).map(function(){return ' '})})
+var image = new Image(process.stdout.columns - 1, process.stdout.rows - 1)
+
 
 data.forEach(function(i) {
-  var coordinates = Object.keys(i).map(function(key) {
-    return Math.floor(linear(i[key], minmax[key].min, minmax[key].max, 0, size[key]))
+  var coordinates = Object.keys(i).map(function(key, index) {
+    return Math.floor(linear(i[key], minmax[key].min, minmax[key].max, 0, image.size[index]))
   })
-  image[coordinates[0]][coordinates[1]] = 'X'
+  image.set(coordinates, 'X')
 })
 
 
 console.log(data.length + ' data points')
 console.log(minmax)
-console.log(image.map(function(row){return row.join('')}).join('\n'))
+console.log(image.plot())
 
