@@ -9,10 +9,13 @@ var app = express()
 var temp
 
 
+// Setup:
+// ground <-> Thermistor <-> A0 <-> 10k resistor <-> vcc
+
+
 board.on('ready', function() {
   var sensor = new five.Sensor({ pin: 'A0', freq: 250 })
   sensor.scale([0, 1]).on('data', function() {
-    // console.log(this.value, this.raw)
     temp = this.raw
   })
 })
