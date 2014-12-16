@@ -2,7 +2,7 @@
 #include <math.h>
 
 const int fadeLed = 9;    // this <-> 330 resistor <-> led <-> ground
-const int sensorPin = A5; // sensorLegOfPhotoTransistor <-> this <-> 5k resistor <-> power
+const int sensorPin = A0; // sensorLegOfPhotoTransistor <-> this <-> 5k resistor <-> power
                           // powerLegOfPhotoTransistor <-> 240 resistor <-> power
                           // groundLegsOfPhotoTransistor <-> ground
 
