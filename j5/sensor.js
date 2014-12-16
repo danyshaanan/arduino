@@ -14,8 +14,8 @@ var temp
 
 
 board.on('ready', function() {
-  var sensor = new five.Sensor({ pin: 'A0', freq: 250 })
-  sensor.scale([0, 1]).on('data', function() {
+  var sensor = new five.Sensor({ pin: 'A0', freq: 5000 })
+  sensor.on('data', function() {
     temp = this.raw
   })
 })
