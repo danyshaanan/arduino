@@ -1,4 +1,7 @@
 
+
+// A robot with 4 motors for 4 wheels, and a front distance sensor.
+
 // pins setup:
 // starting from firstPin:
 // 4 pins for front motors, 4 for back motors. In each group:
@@ -14,6 +17,11 @@ const int FORWARD = 1;
 const int STOP = 0;
 const int BACKWARD = -1;
 const int firstPin = 2;
+const int distanceSensor = A0;
+
+const int verbose = 0;
+
+////////////////////////////////////////
 
 void drive(int motor, int dir) {
   digitalWrite(motor * 2 + firstPin, dir == 1);
@@ -24,49 +32,56 @@ void drive(int frontback, int leftright, int dir) {
   drive(frontback * 2 + leftright, dir);
 }
 
+///////////////////////////////////
+
+void all(int dir) {
+  for (int i=0; i<4; i++) drive(i, dir);
+}
+
+void all(int dir, int ms) {
+  all(dir);
+  delay(ms);
+  all(STOP);
+}
+
+void turn(int side) {
+  for (int i=0; i<4; i++) drive(i, i%2 == side ? -1 : 1);
+}
+
+void turn(int side, int ms) {
+  turn(side);
+  delay(ms);
+  all(STOP);
+}
+
+///////////////////////////////////
+
+
 void setup() {
+  if (verbose) Serial.begin(9600);
+  pinMode(distanceSensor, INPUT);
   for (int i = firstPin; i < firstPin+8; i++) {
     pinMode(i, OUTPUT);
   }
-
-  //testing:
-  drive(FRONT, RIGHT, FORWARD);
-  delay(1000);
-  drive(FRONT, RIGHT, STOP);
-  drive(FRONT, LEFT, FORWARD);
-  delay(1000);
-  drive(FRONT, LEFT, STOP);
-  drive(BACK, LEFT, FORWARD);
-  delay(1000);
-  drive(BACK, LEFT, STOP);
-  drive(BACK, RIGHT, FORWARD);
-  delay(1000);
-  drive(BACK, RIGHT, STOP);
-  delay(1000);
-  drive(BACK, LEFT, FORWARD);
-  drive(BACK, RIGHT, FORWARD);
-  drive(FRONT, LEFT, FORWARD);
-  drive(FRONT, RIGHT, FORWARD);
-  delay(1000);
-  drive(BACK, LEFT, STOP);
-  drive(BACK, RIGHT, STOP);
-  drive(FRONT, LEFT, STOP);
-  drive(FRONT, RIGHT, STOP);
-  delay(1000);
-  drive(BACK, LEFT, BACKWARD);
-  drive(BACK, RIGHT, BACKWARD);
-  drive(FRONT, LEFT, BACKWARD);
-  drive(FRONT, RIGHT, BACKWARD);
-  delay(1000);
-  drive(BACK, LEFT, STOP);
-  drive(BACK, RIGHT, STOP);
-  drive(FRONT, LEFT, STOP);
-  drive(FRONT, RIGHT, STOP);
-
+//  all(FORWARD);
 }
 
 
+int movingForward = 1;
+
 void loop() {
+  int sensor = analogRead(distanceSensor);
+  if (verbose) Serial.println(sensor);
+  int somethingNear = sensor > 300;
+  if (movingForward && somethingNear) {
+    movingForward = 0;
+    all(STOP, 500);
+    turn(LEFT);
+  } else if (!movingForward && !somethingNear) {
+    movingForward = 1;
+    all(STOP, 500);
+    all(FORWARD);
+  }
 }
 
 
