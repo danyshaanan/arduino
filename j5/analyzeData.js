@@ -2,6 +2,8 @@
 
 // This was not meant to be easily readable.
 
+var clc = require('cli-color');
+
 function linear(value, x1, x2, y1, y2) {
   return (value - x1)*((y2 - y1)/(x2 - x1)) + y1;
 }
@@ -12,41 +14,38 @@ function arrayOf(size) {
 
 var data = require('fs').readFileSync('./data.txt').toString().replace(/(^{|}$)/g,'').split('}{').map(function(i){return '{'+i+'}'}).map(JSON.parse)
 
+var axes = ['time', 'temp']
 var minmax = {}
 
+//calc minmax:
 data.forEach(function(i) {
-  Object.keys(i).forEach(function(type) {
-    minmax[type] = minmax[type] || { min: Infinity, max: -Infinity }
-    Object.keys(minmax[type]).forEach(function(f) {
-      minmax[type][f] = Math[f](minmax[type][f], i[type])
+  axes.forEach(function(axis) {
+    minmax[axis] = minmax[axis] || { min: Infinity, max: -Infinity }
+    Object.keys(minmax[axis]).forEach(function(f) {
+      minmax[axis][f] = Math[f](minmax[axis][f], i[axis])
     })
   })
-}) //Muhahahaha
-
-
-function Image(x, y) {
-  this.size = [y, x]
-  this.grid = arrayOf(y+1).map(function(){return arrayOf(x+1).map(function(){return ' '})})
-  this.set = function(coordinates, value) {
-    this.grid[coordinates[0]][coordinates[1]] = value
-  }
-  this.plot = function() {
-    return this.grid.map(function(row){return row.join('')}).join('\n')
-  }
-}
-
-var image = new Image(process.stdout.columns - 1, process.stdout.rows - 1)
-
-
-data.forEach(function(i) {
-  var coordinates = Object.keys(i).map(function(key, index) {
-    return Math.floor(linear(i[key], minmax[key].min, minmax[key].max, 0, image.size[index]))
-  })
-  image.set(coordinates, 'X')
 })
 
+var size = process.stdout.getWindowSize()
 
-console.log(data.length + ' data points')
-console.log(minmax)
-console.log(image.plot())
+//calc data:
+data.forEach(function(i) {
+  axes.forEach(function(key, index) {
+    i[key + 'Normalized'] = Math.floor(linear(i[key], minmax[key].min, minmax[key].max, 0, size[index] + 1))
+  })
+})
 
+/////////////// printing:
+
+var output = data.map(function(o) {
+  return clc.moveTo(o['timeNormalized'],o['tempNormalized']) + '?'
+}).join('')
+
+process.stdout.write(Array(size[1]).join('\n') + output + clc.moveTo(0,999))
+
+
+
+
+
+//
