@@ -12,7 +12,15 @@ function arrayOf(size) {
   return Array.apply(null, { length: size })
 }
 
+var dataPointsInday = 60 * 24
 var data = require('fs').readFileSync('./data.txt').toString().replace(/(^{|}$)/g,'').split('}{').map(function(i){return '{'+i+'}'}).map(JSON.parse)
+
+var daysAvailable = data.length / dataPointsInday
+
+var daysToShow = process.argv[2] || daysAvailable
+daysToShow = parseInt(Math.min(daysToShow, daysAvailable))
+
+data = data.slice(Math.max(0,data.length - dataPointsInday * daysToShow))
 
 var axes = ['time', 'temp']
 var minmax = {}
@@ -39,10 +47,15 @@ data.forEach(function(i) {
 /////////////// printing:
 
 var output = data.map(function(o) {
-  return clc.moveTo(o['timeNormalized'],o['tempNormalized']) + '?'
+  return clc.moveTo(o.timeNormalized,o.tempNormalized) + '?'
 }).join('')
 
-process.stdout.write(Array(size[1]).join('\n') + output + clc.moveTo(0,999))
+
+var background = Array.apply(null, { length: size[1] }).map(function() {
+  return Array(daysToShow).join(Array(parseInt(size[0]/daysToShow)).join(' ') + '|')
+}).join('\n')
+
+process.stdout.write(background + output + clc.moveTo(0,999))
 
 
 
