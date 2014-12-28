@@ -44,7 +44,7 @@ function generateOutout(normalizedData) {
 
 ///////////////////////////////////////////
 
-var data = require('fs').readFileSync('./data.txt').toString().replace(/(^{|}$)/g,'').split('}{').map(function(i){return '{'+i+'}'}).map(JSON.parse)
+var data = require('fs').readFileSync('./data.txt').toString().replace(/(^{|}$)/g,'').split('}{').map(function(i){return '{'+i+'}'}).map(JSON.parse).filter(function(i){return i.temp < 1000})
 var dataPointsInday = 60 * 24
 var daysAvailable = data.length / dataPointsInday
 var daysToShow = parseInt(Math.min(process.argv[2] || Infinity, daysAvailable))
@@ -55,7 +55,7 @@ var size = process.stdout.getWindowSize()
 
 var minmax = calcMinmax(data, axes)
 
-normalizedData(data, minmax, size);
+normalizedData(data, minmax, size)
 
 
 process.stdout.write(generateBackground(daysToShow) + generateOutout(data) + clc.moveTo(0,999))
