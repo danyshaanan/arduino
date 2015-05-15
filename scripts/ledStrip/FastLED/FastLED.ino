@@ -8,6 +8,7 @@
 
 #define BYTE           255         // FastLED channels are all bytes
 #define PIN            6           // data pin for led strip
+#define POTPIN         5           // potentiometer analog input pin
 #define NUMPIXELS      70          // number of leds on led strip
 #define fps            30          // frames per second
 #define saturation     1           // saturation for hsv, [0-1]
@@ -22,6 +23,7 @@ int msPerFrame = 1000 / fps;
 
 int t = 0;
 float hue;
+float speedOfTime = 1;
 
 CRGB leds[NUMPIXELS];
 
@@ -39,9 +41,10 @@ void loop() {
   }
   
   FastLED.show();
-  t = (t + msPerFrame) % periodInMs;
+
+  speedOfTime = analogRead(POTPIN)*6/1023 - 3;
+  t = int(t + msPerFrame * speedOfTime) % periodInMs;
   delay(msPerFrame);
-  
 }
 
 //////////////////////////////////////////////////////////
