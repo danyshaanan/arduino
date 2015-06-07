@@ -2,13 +2,16 @@
 
 Ingredients:
 * Latching Hall Effect Sensor - Melexis US1881
-* RGB addressable LED strip
+* RGB addressable LED strip (fastled.io compatible)
 
 Built and tested on A-Star 32U4 Micro (Leonardo), with Arduino 1.6.3
 https://www.pololu.com/product/3101
 
 Connect the US1881 legs to Vcc, ground and A1.
 Connect the LED strip legs to Vcc, ground, and 10.
+
+The magnet should move in the direction of its magnetic axis,
+so that the sensor will sense its two poles right before and right after it passes it.
 
 */
 
