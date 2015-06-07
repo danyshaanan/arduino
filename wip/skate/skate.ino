@@ -30,14 +30,20 @@ so that the sensor will sense its two poles right before and right after it pass
 #define VERBOSE        1
 
 const double tau = 2 * 3.14159265359;
-const double periodsPedSecond = 0.133;
+const double periodsPedSecond = 1;
 
 CRGB leds[NUMPIXELS];
-double hue = 0.4;
+double hue = 0;
 double t = 0;
 
 double x, seq;
-boolean magnetState;
+boolean magnetState = false;
+boolean prevMagnetState = false;
+int positiveCount = 0;
+int negativeCount = 0;
+int msSinceLastTick = 0;
+double mm = 200;
+double speed = 0;
 
 boolean getMagnetState(int pin) {
   return analogRead(pin) < 512;
@@ -51,40 +57,36 @@ void setup() {
   pinMode(analogInPin, INPUT_PULLUP);
 }
 
-int positiveCount = 0;
-int negativeCount = 0;
-boolean prevMagnetState = false;
-int prevCountMillis = 0;
-double mm = 200;
-double speed = 0;
-
 void loop() {
   magnetState = getMagnetState(analogInPin);
+  analogWrite(led, magnetState ? 255 : 10);
 
-  if (magnetState != prevMagnetState) {
-    //if (VERBOSE) Serial.println(magnetState);
-    analogWrite(led, magnetState ? 255 : 10);
+  if (magnetState && !prevMagnetState) {
+    speed = (positiveCount > negativeCount ? 1 : -1) * mm/float(msSinceLastTick);
+    if (VERBOSE) Serial.println(speed);
 
-    if (magnetState && !prevMagnetState) {
-      speed = (positiveCount > negativeCount ? 1 : -1) * mm/float(millis() - prevCountMillis);
-      if (VERBOSE) Serial.println(speed);
-
-      prevCountMillis = millis();
-      positiveCount = 0;
-      negativeCount = 0;
-    }
+    msSinceLastTick = 0;
+    positiveCount = 0;
+    negativeCount = 0;
+  } else {
+    double maxAbsSpeed = mm/float(msSinceLastTick);
+    if (speed > 1.3 * maxAbsSpeed) speed = maxAbsSpeed;
+    if (-speed > 1.3 * maxAbsSpeed) speed = -maxAbsSpeed;
   }
 
-  positiveCount += magnetState ? 1 : 0;
-  negativeCount += magnetState ? 0 : 1;
+  if (VERBOSE) Serial.println(speed);
+
+  if (magnetState) positiveCount++;
+  else             negativeCount++;
 
   t += delayPerFrame * speed;
+  msSinceLastTick += delayPerFrame;
 
   x = t / 1000 * tau * periodsPedSecond;
 
   for (int i=0; i<NUMPIXELS; i++) {
-    seq = sin(x + i) / 2 + 0.5;
-    leds[i] = CHSV(BYTE * hue, BYTE * saturation, BYTE * seq * value);
+    seq = sin(x + 0.25 * i) / 2 + 0.5;
+    leds[i] = CHSV(BYTE * seq, BYTE * saturation, BYTE * value);
   }
   FastLED.show();
 
