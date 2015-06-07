@@ -51,14 +51,35 @@ void setup() {
   pinMode(analogInPin, INPUT_PULLUP);
 }
 
+int positiveCount = 0;
+int negativeCount = 0;
+boolean prevMagnetState = false;
+int prevCountMillis = 0;
+double mm = 200;
+double speed = 0;
 
 void loop() {
   magnetState = getMagnetState(analogInPin);
-  if (VERBOSE) Serial.println(magnetState);
-  analogWrite(led, magnetState ? 255 : 10);
-  t += delayPerFrame * (magnetState ? 1 : -1);
 
-  hue = 0.999 * hue + 0.001 * (magnetState ? 0 : 0.5); //This is not invariant to delayPerFrame!
+  if (magnetState != prevMagnetState) {
+    //if (VERBOSE) Serial.println(magnetState);
+    analogWrite(led, magnetState ? 255 : 10);
+
+    if (magnetState && !prevMagnetState) {
+      speed = (positiveCount > negativeCount ? 1 : -1) * mm/float(millis() - prevCountMillis);
+      if (VERBOSE) Serial.println(speed);
+
+      prevCountMillis = millis();
+      positiveCount = 0;
+      negativeCount = 0;
+    }
+  }
+
+  positiveCount += magnetState ? 1 : 0;
+  negativeCount += magnetState ? 0 : 1;
+
+  t += delayPerFrame * speed;
+
   x = t / 1000 * tau * periodsPedSecond;
 
   for (int i=0; i<NUMPIXELS; i++) {
@@ -67,5 +88,6 @@ void loop() {
   }
   FastLED.show();
 
+  prevMagnetState = magnetState;
   delay(delayPerFrame);
 }
