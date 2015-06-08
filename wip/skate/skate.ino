@@ -7,7 +7,7 @@ Ingredients:
 Built and tested on A-Star 32U4 Micro (Leonardo), with Arduino 1.6.3
 https://www.pololu.com/product/3101
 
-Connect the US1881 legs to Vcc, ground and A1.
+Connect the US1881 legs to Vcc, ground and digital 11.
 Connect the LED strip legs to Vcc, ground, and 10.
 
 The magnet should move in the direction of its magnetic axis,
@@ -26,7 +26,7 @@ so that the sensor will sense its two poles right before and right after it pass
 #define delayPerFrame  10
 
 #define led            13 // build in led
-#define analogInPin    A1
+#define analogInPin    11
 #define VERBOSE        1
 
 const double tau = 2 * 3.14159265359;
@@ -46,7 +46,7 @@ double mm = 200;
 double speed = 0;
 
 boolean getMagnetState(int pin) {
-  return analogRead(pin) < 512;
+  return digitalRead(pin);
 }
 
 ////////////////////////////////////////////////////////
