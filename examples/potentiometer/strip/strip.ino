@@ -8,10 +8,10 @@
 #define BYTE           255         // FastLED channels are all bytes
 #define PIN            6           // data pin for led strip
 #define SENSORPIN      7           // sensor analog input pin
-#define NUMPIXELS      4           // number of leds on led strip
+#define NUMPIXELS      20          // number of leds on led strip
 #define fps            30          // frames per second
 
-#define maxSpeed       7
+#define maxSpeed       20
 
 int msPerFrame = 1000 / fps;
 
