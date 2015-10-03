@@ -52,7 +52,7 @@ boolean getMagnetState(int pin) {
 ////////////////////////////////////////////////////////
 
 void setup() {
-  FastLED.addLeds<NEOPIXEL, StripPin>(leds, NUMPIXELS);
+  FastLED.addLeds<WS2812, StripPin>(leds, NUMPIXELS);
   if (VERBOSE) Serial.begin(9600);
   pinMode(analogInPin, INPUT_PULLUP);
 }

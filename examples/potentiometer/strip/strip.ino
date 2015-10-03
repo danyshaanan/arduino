@@ -22,7 +22,7 @@ CRGB leds[NUMPIXELS];
 
 void setup() {
   t = 0;
-  FastLED.addLeds<NEOPIXEL, PIN>(leds, NUMPIXELS);
+  FastLED.addLeds<WS2812, PIN>(leds, NUMPIXELS);
 }
 
 void loop() {

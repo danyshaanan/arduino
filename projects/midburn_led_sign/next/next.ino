@@ -31,7 +31,7 @@ CRGB leds[NUMPIXELS];
 /////////////////////////////////////////////////////
 
 void setup() {
-  FastLED.addLeds<NEOPIXEL, PIN>(leds, NUMPIXELS);
+  FastLED.addLeds<WS2812, PIN>(leds, NUMPIXELS);
   t = 0;
   for (int i=0; i<NUMPIXELS; i++) {
     leds[i] = CHSV(0, 0, 100);
@@ -46,11 +46,11 @@ void loop() {
     hue = timesPerMs * t - huePerPixel * i * analogRead(POTPIN1)/1024;
     leds[i] = CHSV(BYTE * hue, BYTE * saturation, BYTE * value);
   }
-  
+
   FastLED.show();
 
   t = int(float(t) + msPerFrame * analogRead(POTPIN2) / 1024) % periodInMs;
   delay(msPerFrame);
 }
 
-//////////////////////////////////////////////////////////  
+//////////////////////////////////////////////////////////

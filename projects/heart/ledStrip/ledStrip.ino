@@ -39,7 +39,7 @@ void rgb(int i, float r, float g, float b) {
 
 
 void setup() {
-  FastLED.addLeds<NEOPIXEL, PIN>(leds, NUMPIXELS);
+  FastLED.addLeds<WS2812, PIN>(leds, NUMPIXELS);
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   delay(1000);
@@ -48,13 +48,12 @@ void setup() {
 
 void loop() {
   temp = pow(0.01 * map(100 * sin(t), -100, 100, 60, 90), 4);
-  
+
   for (int i=0; i<NUMPIXELS; i++) {
     hsv(i, 0, 1, temp);
   }
-  
+
   FastLED.show();
   t += msPerFrame * hb * tauPerMinute;
   delay(msPerFrame);
 }
-
