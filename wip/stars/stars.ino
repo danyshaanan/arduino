@@ -1,5 +1,3 @@
-// https://www.sparkfun.com/products/9269
-
 #include <math.h>
 #include <stdlib.h>
 #include "FastLED.h" // https://github.com/FastLED/FastLED
