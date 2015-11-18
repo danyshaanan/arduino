@@ -3,7 +3,7 @@
 #include "FastLED.h" // https://github.com/FastLED/FastLED
 
 #define PIXELSPIN      11 // data pin for led strip
-#define PIXELSNUM      5 // number of leds on led strip
+#define PIXELSNUM      3 // number of leds on led strip
 
 CRGB leds[PIXELSNUM];
 
