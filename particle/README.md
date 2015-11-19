@@ -11,6 +11,7 @@ brew install DFU-util
 particle setup
 
 # brew cask install particle-dev
+# particle flash --usb tinker
 ```
 
 
