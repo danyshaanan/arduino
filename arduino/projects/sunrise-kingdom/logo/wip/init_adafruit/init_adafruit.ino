@@ -37,11 +37,11 @@ void setup() {
 void loop() {
 
   for (int i=0; i<NUMPIXELS; i++){
-    hue = int(360 * (1 + timesPerMs * t - huePerPixel * i)) % 360; 
+    hue = int(360 * (1 + timesPerMs * t - huePerPixel * i)) % 360;
     HSVtoRGB(&r, &g, &b, hue, saturation, value);
     pixels.setPixelColor(i, pixels.Color(maxChannel * r, maxChannel * g, maxChannel * b));
   }
-  
+
   pixels.show();
   t = (t + msPerFrame) % periodInMs;
   delay(msPerFrame);

@@ -41,7 +41,7 @@ void loop() {
   for (int i=0; i<NUMPIXELS; i++) {
 
     hue = timesPerMs * t - huePerPixel * i;
-  
+
     if (program == 0) { // "off"
       leds[i] = CRGB::Black;
       if (i == 0) leds[i] = CHSV(131, BYTE * 0.77, BYTE * 0.20);
@@ -67,11 +67,11 @@ void loop() {
       leds[i] = CRGB::Black;
     }
   }
-  
+
   FastLED.show();
 
   t = int(t + msPerFrame) % periodInMs;
   delay(msPerFrame);
 }
 
-//////////////////////////////////////////////////////////  
+//////////////////////////////////////////////////////////
