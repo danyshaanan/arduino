@@ -55,7 +55,7 @@ void loop() {
   for (int i = 0; i < ROWS; i++) {
     for (int j = 0; j < COLS; j++) {
       count = countNeighbors(i, j);
-      grid[i][j] = (temp[i][j] && 2 <= count && count <= 3) || (!temp[i][j] && count == 3);
+      grid[i][j] = count == 3 || (count == 2 && temp[i][j]);
     }
   }
 }
