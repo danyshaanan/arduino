@@ -1,83 +1,66 @@
 #include <FastLED.h>
 
 #define PIN             11
-#define ROWS            8
+#define ROWS             8
 #define COLS            32
+#define LIGHT           16 // out of 255
+#define ticksPerSecond   1
+#define framesPerFade   33
 
 CRGB leds[ROWS * COLS];
-bool grid[ROWS][COLS];
+int grid[ROWS][COLS], palette, x, y, dir = 0;
 
-int dir = 0;
-int x = ROWS / 2;
-int y = COLS / 2;
-
-// LEDS:
-
-int getLedIndex(int row, int col) {
-  return col % 2 ? (ROWS - 1 - row) + ROWS * col : row + ROWS * col;
+int mod(int a, int m) {
+  return (a % m + m) % m;
 }
 
-void setLedBrightness(int i, int j, int v) {
-  leds[getLedIndex(i, j)] = CRGB(v, v, v);
-}
-
-////////////////
-
-void setOffGrid() {
-  for (int i = 0; i < ROWS; i++) for (int j = 0; j < COLS; j++) grid[i][j] = false; // rand() % 2;
+void setLed(int row, int col, int r, int g, int b) {
+  leds[ROWS * col + (col % 2 ? ROWS - 1 - row : row)] = CRGB(g, r, b);
 }
 
 void setup() {
-  //pinMode(LED_BUILTIN, OUTPUT);
+  palette = analogRead(A0) % 12;
   FastLED.addLeds<WS2812, PIN>(leds, ROWS * COLS);
-  setOffGrid();
+  for (x = 0; x < ROWS; x++) {
+    for (y = 0; y < COLS; y++) {
+      grid[x][y] = 0;
+      setLed(x, y, 0, 0, 0);
+    }
+  }
+  x = ROWS / 2;
+  y = COLS / 2;
 }
 
 void loop() {
-  
-  if (dir == 0) x += 1;
-  if (dir == 1) y += 1;
-  if (dir == 2) x -= 1;
-  if (dir == 3) y -= 1;
+  if (dir % 2) x = mod(x + dir - 2, ROWS);
+  else         y = mod(y + dir - 1, COLS);
 
-  if (x < 0) x += ROWS;
-  if (y < 0) y += COLS;
-  x %= ROWS;
-  y %= COLS;
+  int visits = ++grid[x][y];
 
-  bool cell = grid[x][y];
-  dir += cell ? 1 : -1;
-  
-  if (dir < 0) dir += 4;
-  dir %= 4;
+  dir = mod(dir + (visits % 2 ? 1 : -1), 4);
 
-  grid[x][y] = !cell;
-  //setLedBrightness(x, y, cell ? 4 : 0);
+  for (float t = 0; t <= LIGHT; t += 1.0 * LIGHT / framesPerFade) {
+    int updown = visits % 2 ? t : LIGHT - t;
+    int upstay = visits < 2 ? t : LIGHT;
+    int offoff = 0;
 
-  for (int i = 0; i < ROWS; i++) {
-    for (int j = 0; j < COLS; j++) {
-      setLedBrightness(i, j, grid[i][j] ? 4 : 0);
-    }
+         if (palette ==  0) setLed(x, y, updown, upstay, offoff);
+    else if (palette ==  1) setLed(x, y, offoff, updown, upstay);
+    else if (palette ==  2) setLed(x, y, upstay, offoff, updown);
+
+    else if (palette ==  3) setLed(x, y, updown, offoff, upstay);
+    else if (palette ==  4) setLed(x, y, upstay, updown, offoff);
+    else if (palette ==  5) setLed(x, y, updown, offoff, upstay);
+
+    else if (palette ==  6) setLed(x, y, updown, upstay, upstay);
+    else if (palette ==  7) setLed(x, y, upstay, updown, upstay);
+    else if (palette ==  8) setLed(x, y, upstay, upstay, updown);
+
+    else if (palette ==  9) setLed(x, y, offoff, updown, updown);
+    else if (palette == 10) setLed(x, y, updown, offoff, updown);
+    else if (palette == 11) setLed(x, y, updown, updown, offoff);
+
+    FastLED.show();
+    delay(1000 / ticksPerSecond / framesPerFade);
   }
-
-  FastLED.show();
-  delay(100);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
