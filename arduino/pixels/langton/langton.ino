@@ -4,8 +4,8 @@
 #define ROWS             8
 #define COLS            32
 #define LIGHT           16 // out of 255
-#define ticksPerSecond   1
-#define framesPerFade   33
+#define ticksPerSecond   30
+#define framesPerFade    10
 
 CRGB leds[ROWS * COLS];
 int grid[ROWS][COLS], palette, x, y, dir = 0;
