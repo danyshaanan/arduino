@@ -2,42 +2,42 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define STRIPIN        11          // data pin for led strip
-#define POTPIN1        A0          // potentiometer for value
-#define POTPIN2        A10         // potentiometer for cycle length
-#define POTPIN3        A11         // potentiometer for cycle time
-#define NUMPIXELS      144         // number of leds on led strip
+#define stripPin    11  // data output pin for WS2812 strip
+#define potPin1     A0  // input pin for value potentiometer
+#define potPin2     A10 // input pin for cycle length potentiometer
+#define potPin3     A11 // input pin for cycle time potentiometer
+#define numOfPixels 144
+#define saturation  255
+#define msPerFrame  33
+#define threshold   32
 
-#define saturation     255         // saturation for hsv
-#define msPerFrame     33          // miliseconds per frame
-#define threshold      32          // threshold
-
-float val, hps, hpp, p1, p2, p3, t1, t2, t3, hue = 0;
-CRGB leds[NUMPIXELS];
+CRGB leds[numOfPixels];
+float value, huePerSecond, huePerPixel;
+float input1, input2, input3, read1, read2, read3, hue = 0;
 
 /////////////////////////////////////////////////////
 
 void setup() {
-  FastLED.addLeds<WS2812, STRIPIN>(leds, NUMPIXELS);
+  FastLED.addLeds<WS2812, stripPin>(leds, numOfPixels);
 }
 
 void loop() {
-  t1 = analogRead(POTPIN1);
-  t2 = analogRead(POTPIN2);
-  t3 = analogRead(POTPIN3);
+  read1 = analogRead(potPin1);
+  read2 = analogRead(potPin2);
+  read3 = analogRead(potPin3);
 
-  if (abs(t1 - p1) > threshold) p1 = t1;
-  if (abs(t2 - p2) > threshold) p2 = t2;
-  if (abs(t3 - p3) > threshold) p3 = t3;
+  if (abs(read1 - input1) > threshold) input1 = read1;
+  if (abs(read2 - input2) > threshold) input2 = read2;
+  if (abs(read3 - input3) > threshold) input3 = read3;
 
-  val = p1 < 24 ? 0 : map(p1, 24, 1024, 64, 128);
-  hpp = p2 < 24 ? 0 : map(p2, 24, 1024, 0, 255) / 24.0;
-  hps = p3 < 24 ? 0 : map(p3, 24, 1024, 0, 255);
+  value        = input1 < 24 ? 0 : map(input1, 24, 1024, 64, 128);
+  huePerPixel  = input2 < 24 ? 0 : map(input2, 24, 1024, 0, 255) / 24.0;
+  huePerSecond = input3 < 24 ? 0 : map(input3, 24, 1024, 0, 255);
 
-  hue += hps * msPerFrame / 1000.0;
+  hue += huePerSecond * (msPerFrame / 1000.0);
 
-  for (int i = 0; i < NUMPIXELS; i++) {
-    leds[i] = CHSV(hue - hpp * i, saturation, val);
+  for (int pixel = 0; pixel < numOfPixels; pixel++) {
+    leds[pixel] = CHSV(hue - huePerPixel * pixel, saturation, value);
   }
 
   FastLED.show();
