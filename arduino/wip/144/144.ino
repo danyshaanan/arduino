@@ -10,7 +10,7 @@
 
 #define saturation     255         // saturation for hsv
 #define msPerFrame     33          // miliseconds per frame
-#define threshold      14          // threshold
+#define threshold      32          // threshold
 
 float val, hps, hpp, p1, p2, p3, t1, t2, t3, hue = 0;
 CRGB leds[NUMPIXELS];
@@ -26,9 +26,9 @@ void loop() {
   t2 = analogRead(POTPIN2);
   t3 = analogRead(POTPIN3);
 
-  if (t1 < p1 - threshold || t1 > p1 + threshold) p1 = t1;
-  if (t2 < p2 - threshold || t2 > p2 + threshold) p2 = t2;
-  if (t3 < p3 - threshold || t3 > p3 + threshold) p3 = t3;
+  if (abs(t1 - p1) > threshold) p1 = t1;
+  if (abs(t2 - p2) > threshold) p2 = t2;
+  if (abs(t3 - p3) > threshold) p3 = t3;
 
   val = p1 < 24 ? 0 : map(p1, 24, 1024, 64, 128);
   hpp = p2 < 24 ? 0 : map(p2, 24, 1024, 0, 255) / 24.0;
