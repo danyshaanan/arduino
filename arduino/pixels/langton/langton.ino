@@ -1,66 +1,100 @@
 #include <FastLED.h>
 
+/////////////////////////////////////////////////////////
+
 #define PIN             11
 #define ROWS             8
 #define COLS            32
 #define LIGHT           16 // out of 255
-#define ticksPerSecond   30
-#define framesPerFade    10
+#define MSPERTICK      333
 
-CRGB leds[ROWS * COLS];
-int grid[ROWS][COLS], palette, x, y, dir = 0;
+/////////////////////////////////////////////////////////
+
+struct color { float r, g, b; };
+color black, off, on;
+color linear(color from, color to, float p) {
+  color res;
+  float q = 1 - p;
+  res.r = q * from.r + p * to.r;
+  res.g = q * from.g + p * to.g;
+  res.b = q * from.b + p * to.b;
+  return res;
+}
+
+void (*resetFunc)(void) = 0;
 
 int mod(int a, int m) {
   return (a % m + m) % m;
 }
 
-void setLed(int row, int col, int r, int g, int b) {
-  leds[ROWS * col + (col % 2 ? ROWS - 1 - row : row)] = CRGB(g, r, b);
+int xyToIndex(int row, int col) {
+  row = mod(row, ROWS);
+  col = mod(col, COLS);
+  return ROWS * col + (col % 2 ? ROWS - 1 - row : row);
 }
+
+/////////////////////////////////////////////////////////
+
+CRGB leds[ROWS * COLS];
+int grid[ROWS * COLS], x, y, visits, ticks = 0, dir = 2;
+
+/////////////////////////////////////////////////////////
+
+void setLed(int x, int y, color c) {
+  leds[xyToIndex(x, y)] = CRGB(LIGHT * c.g, LIGHT * c.r, LIGHT * c.b);
+}
+
+void fadeLed(int x, int y, color from, color to, int ms = MSPERTICK) {
+  int frames = ms / 30;
+  for (int f = 0; f <= frames; f++) {
+    setLed(x, y, linear(from, to, 1. * f / frames));
+    FastLED.show();
+    delay(ms / frames);
+  }
+}
+
+/////////////////////////////////////////////////////////
 
 void setup() {
-  palette = analogRead(A0) % 12;
-  FastLED.addLeds<WS2812, PIN>(leds, ROWS * COLS);
-  for (x = 0; x < ROWS; x++) {
-    for (y = 0; y < COLS; y++) {
-      grid[x][y] = 0;
-      setLed(x, y, 0, 0, 0);
-    }
+  switch (analogRead(0) % 4) {
+    case 0: on.r = on.g = on.b = 1; break;
+    case 1: off.r = on.g = on.b = 1; break;
+    case 2: on.r = off.g = on.b = 1; break;
+    case 3: on.r = on.g = off.b = 1; break;
   }
-  x = ROWS / 2;
-  y = COLS / 2;
+
+  FastLED.addLeds<WS2812, PIN>(leds, ROWS * COLS);
+
+  for (int i = 0; i < 3; i++) {
+    fadeLed(0, 0, black, on, 500);
+    fadeLed(0, 0, on, black, 500);
+  }
+
+//  for (x = 0; x < ROWS; x++) for (y = 0; y < COLS; y++) grid[x][y] = 0;
+  x = ROWS / 2 - 1;
+  y = COLS / 2 - 0;
 }
+
+/////////////////////////////////////////////////////////
 
 void loop() {
-  if (dir % 2) x = mod(x + dir - 2, ROWS);
-  else         y = mod(y + dir - 1, COLS);
+  if (dir % 4 == 0) y--;
+  if (dir % 4 == 1) x--;
+  if (dir % 4 == 2) y++;
+  if (dir % 4 == 3) x++;
 
-  int visits = ++grid[x][y];
+  visits = grid[xyToIndex(x, y)]++;
+  dir += visits % 2 ? 1 : 3;
+  
+  if      (!visits)    fadeLed(x, y, black, on);
+  else if (visits % 2) fadeLed(x, y, on, off);
+  else                 fadeLed(x, y, off, on);
 
-  dir = mod(dir + (visits % 2 ? 1 : -1), 4);
-
-  for (float t = 0; t <= LIGHT; t += 1.0 * LIGHT / framesPerFade) {
-    int updown = visits % 2 ? t : LIGHT - t;
-    int upstay = visits < 2 ? t : LIGHT;
-    int offoff = 0;
-
-         if (palette ==  0) setLed(x, y, updown, upstay, offoff);
-    else if (palette ==  1) setLed(x, y, offoff, updown, upstay);
-    else if (palette ==  2) setLed(x, y, upstay, offoff, updown);
-
-    else if (palette ==  3) setLed(x, y, updown, offoff, upstay);
-    else if (palette ==  4) setLed(x, y, upstay, updown, offoff);
-    else if (palette ==  5) setLed(x, y, updown, offoff, upstay);
-
-    else if (palette ==  6) setLed(x, y, updown, upstay, upstay);
-    else if (palette ==  7) setLed(x, y, upstay, updown, upstay);
-    else if (palette ==  8) setLed(x, y, upstay, upstay, updown);
-
-    else if (palette ==  9) setLed(x, y, offoff, updown, updown);
-    else if (palette == 10) setLed(x, y, updown, offoff, updown);
-    else if (palette == 11) setLed(x, y, updown, updown, offoff);
-
-    FastLED.show();
-    delay(1000 / ticksPerSecond / framesPerFade);
+  if (++ticks == 52) delay (3000);
+  if (millis() / 1000 > 60 * 60) {
+    delay(60 * 1000);
+    resetFunc();
   }
 }
+
+/////////////////////////////////////////////////////////
