@@ -1,3 +1,10 @@
+/////////////////////////////////////////////////////////
+
+// 8x32 WS2812 LEDs Langton's Ant simulator
+// FastLED version 3.001.006
+
+/////////////////////////////////////////////////////////
+
 #include <FastLED.h>
 
 /////////////////////////////////////////////////////////
@@ -45,12 +52,17 @@ void setLed(int x, int y, color c) {
 }
 
 void fadeLed(int x, int y, color from, color to, int ms = MSPERTICK) {
-  int frames = ms / 30;
-  for (int f = 0; f <= frames; f++) {
+  int frames = max(ms / 30, 1);
+  for (int f = 1; f <= frames; f++) {
     setLed(x, y, linear(from, to, 1. * f / frames));
     FastLED.show();
     delay(ms / frames);
   }
+}
+
+void blinkLed(int x, int y) {
+  fadeLed(x, y, black, on, 500);
+  fadeLed(x, y, on, black, 500);
 }
 
 /////////////////////////////////////////////////////////
@@ -65,10 +77,10 @@ void setup() {
 
   FastLED.addLeds<WS2812, PIN>(leds, ROWS * COLS);
 
-  for (int i = 0; i < 3; i++) {
-    fadeLed(0, 0, black, on, 500);
-    fadeLed(0, 0, on, black, 500);
-  }
+  blinkLed(-0, -0);
+  blinkLed(-0, -1);
+  blinkLed(-1, -1);
+  blinkLed(-1, -0);
 
 //  for (x = 0; x < ROWS; x++) for (y = 0; y < COLS; y++) grid[x][y] = 0;
   x = ROWS / 2 - 1;
@@ -90,9 +102,10 @@ void loop() {
   else if (visits % 2) fadeLed(x, y, on, off);
   else                 fadeLed(x, y, off, on);
 
-  if (++ticks == 52) delay (3000);
-  if (millis() / 1000 > 60 * 60) {
-    delay(60 * 1000);
+  ticks++;
+  if (ticks == 52) delay (3000);
+  if (ticks > 3 * 60 * 60) {
+    delay(8000);
     resetFunc();
   }
 }
