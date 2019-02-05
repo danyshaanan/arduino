@@ -8,7 +8,7 @@
 #define NUMPIXELS      20          // number of WS2812 leds
 #define fps            30          // frames per second
 #define periodInMs     8000.       // ms length of period
-#define sensitivity    50
+#define sensitivity    30
 
 int msPerFrame = 1000 / fps;
 float s, hue, diff, value;
@@ -31,7 +31,7 @@ void loop() {
   for (int i = 0; i < NUMSENSORS; i++) {
     if (analogRead(sensors[i]) > sensitivity) peak[i] = s;
     diff = (s - peak[i]);
-    value = peak[i] ? (diff < 1 ? diff : 1.0 / diff) : 0;
+    value = diff < .5 ? 1 : 1.0 / (diff + .5);
     if (value > .2) leds[i] = CHSV(BYTE * hue, 0, BYTE * value);
   }
 
