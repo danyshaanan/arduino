@@ -3,18 +3,19 @@
 #include <math.h>
 
 #define BYTE           255         // FastLED channels are all bytes
-#define DATAPIN        3           // data pin for led strip
-#define NUMSENSORS     2           // number of sensors
-#define NUMPIXELS      20          // number of WS2812 leds
+#define DATAPIN        2           // data pin for led strip
+#define NUMPIXELS      12          // number of WS2812 leds
 #define fps            30          // frames per second
 #define periodInMs     8000.       // ms length of period
-#define sensitivity    30
+#define sensitivity    50          // sensor threashold out of 1024
+#define secondsAction  1.0         // seconds for initial led response
+#define v              0.4         // light intensity out of 1
 
 int msPerFrame = 1000 / fps;
 float s, hue, diff, value;
 CRGB leds[NUMPIXELS];
-float peak[NUMPIXELS] = { 0 };
-int sensors[] = { 0, 1 };
+float peak[NUMPIXELS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+
 
 /////////////////////////////////////////////////////
 
@@ -27,14 +28,16 @@ void setup() {
 void loop() {
   hue = 1000.0 * s / periodInMs;
 
-  for (int i = 0; i < NUMPIXELS; i++) leds[i] = CHSV(BYTE * hue, BYTE, BYTE * 0.2);
-  for (int i = 0; i < NUMSENSORS; i++) {
-    if (analogRead(sensors[i]) > sensitivity) peak[i] = s;
-    diff = (s - peak[i]);
-    value = diff < .5 ? 1 : 1.0 / (diff + .5);
-    if (value > .2) leds[i] = CHSV(BYTE * hue, 0, BYTE * value);
+  for (int i = 0; i < NUMPIXELS; i++) {
+    if (analogRead(i + 1) > sensitivity) peak[i] = s;
+    diff = s - peak[i];
+    if (diff < secondsAction) leds[i] = CHSV(BYTE * hue, 0, (1.0 - diff / secondsAction) * BYTE * v);
+    else                      leds[i] = CHSV(BYTE * hue, BYTE, BYTE * .5 * v);
+    Serial.print(analogRead(i + 1) / 100);
+    Serial.print(" ");
   }
-
+  Serial.println("");
+  
   FastLED.show();
   delay(msPerFrame);
   s += msPerFrame / 1000.0;
