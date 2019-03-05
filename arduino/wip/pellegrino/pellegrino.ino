@@ -17,6 +17,7 @@ float now, valueHitReducer;
 int H, maxHit, maxPin, hit;
 CRGB leds[NUMPIXELS];
 float peaks[NUMPIXELS];
+int temp[NUMPIXELS];
 int wave[NUMPIXELS];
 int hits[NUMPIXELS];
 int alll[NUMPIXELS];
@@ -35,6 +36,7 @@ void wait(int ms) {
 }
 void writeTo(int wave[], int h = 0, int s = 0, int v = 0, int ms = 0) {
   for (int i = 0; i < NUMPIXELS; i++) if (wave[i]) leds[i] = CHSV(h, s, v);
+  if (ms == 0) return;
   FastLED.show();
   wait(ms);
 }
@@ -42,6 +44,36 @@ int count(int arr[]) {
   int c = 0;
   for (int i = 0; i < NUMPIXELS; i++) if (arr[i]) c++;
   return c;
+}
+
+/////////////////////////////////////////////////////
+
+void runProgram(int p) {
+  H = BYTE * now;
+  valueHitReducer = count(hits) ? 0.5 : 1.0;
+
+  if (p == 0) {
+    writeTo(alll, 1.0 * H, S, valueHitReducer * V);
+  }
+  if (p == 1) {
+    writeTo(alll, 0.1 * H, S, 0.5 * V);
+    int bottles = 12;
+    int bottle = abs(((int)(8 * (now + 0 * sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2);
+    leds[bottle] = CHSV(0, 0, valueHitReducer * V);
+  }
+  if (p == 2) {
+    writeTo(alll, 0, 0, 0);
+    int bottles = count(wave);
+    int bottle = abs(((int)(4 * (now + sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2) + 1;
+    int bottleCounter = 0;
+    int j;
+    for (j = 0; j < NUMPIXELS; j++) {
+      if (wave[j]) bottleCounter++;
+      if (bottleCounter == bottle) break;
+    }
+    leds[j] = CHSV(0, S, V);
+  }
+  
 }
 
 /////////////////////////////////////////////////////
@@ -55,13 +87,15 @@ void setup() {
   }
   FastLED.addLeds<WS2812, DATAPIN>(leds, NUMPIXELS);
   Serial.begin (9600);
+  delay(5000);
 }
 
 void loop() {
   //identify wave:
-  for (int i = 0; i < NUMPIXELS; i++) wave[i] = now - 6 < peaks[i];
-  if (!DISABLEWAVE && lastWave < now - 6 && lastPeak < now - 1 && count(wave) >= 4) {
+  for (int i = 0; i < NUMPIXELS; i++) temp[i] = now - 6 < peaks[i];
+  if (!DISABLEWAVE && lastWave < now - 6 && lastPeak < now - 1 && count(temp) >= 4) {
     Serial.println("wave identified");
+    for (int i = 0; i < NUMPIXELS; i++) wave[i] = temp[i];
     lastWave = now;
     program = (program + 1) % NUMPROGRAMS;
     for (int j = 0; j < 5; j++) {
@@ -87,11 +121,7 @@ void loop() {
   for (int i = 0; i < NUMPIXELS; i++) hits[i] = now - peaks[i] < secondsAction;
 
   //write all (programs):
-  H = BYTE * now;
-  valueHitReducer = count(hits) ? 0.5 : 1.0;
-  if (program == 0) writeTo(alll, 1.0 * H, S, valueHitReducer * V);
-  if (program == 1) writeTo(alll,       0, S, valueHitReducer * V);
-  if (program == 2) writeTo(alll, 0.1 * H, S, valueHitReducer * V);
+  runProgram(program);
 
   //write active and wait for frame:
   writeTo(hits, 0, 0, V, msPerFrame);
