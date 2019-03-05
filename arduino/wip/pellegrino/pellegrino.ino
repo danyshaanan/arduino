@@ -136,7 +136,7 @@ void loop() {
       writeTo(wave, 0, 0, V, 200);
     }
   }
-  if (lastWave < now - 60) {
+  if (lastWave < now - 30) {
     lastWave = now;
     program = (program + 1) % NUMPROGRAMS;    
   }
