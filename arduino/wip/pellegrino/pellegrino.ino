@@ -13,16 +13,16 @@
 #define DISABLEWAVE    false
 
 int msPerFrame = 1000 / fps;
-float now;
+float now, valueHitReducer;
 int H, maxHit, maxPin, hit;
 CRGB leds[NUMPIXELS];
 float peaks[NUMPIXELS];
 int wave[NUMPIXELS];
-int temp[NUMPIXELS];
+int hits[NUMPIXELS];
 int alll[NUMPIXELS];
 int none[NUMPIXELS];
 int threshold[NUMPIXELS] = { 40, 20, 20, 20, 25, 25, 30, 25, 30, 25, 35, 35 };
-//                            0   1   2   3   4   5   6   7   8   9  10  11
+//                            1   2   3   4   5   6   7   8   9  10  11  12
 int lastWave = 0;
 int lastPeak = 0;
 int program = 0;
@@ -60,11 +60,11 @@ void setup() {
 void loop() {
   //identify wave:
   for (int i = 0; i < NUMPIXELS; i++) wave[i] = now - 6 < peaks[i];
-  if (!DISABLEWAVE && lastWave < now - 6 && lastPeak < now - 1 && count(wave) >= 5) {
+  if (!DISABLEWAVE && lastWave < now - 6 && lastPeak < now - 1 && count(wave) >= 4) {
     Serial.println("wave identified");
     lastWave = now;
     program = (program + 1) % NUMPROGRAMS;
-    for (int j = 0; j < 3; j++) {
+    for (int j = 0; j < 5; j++) {
       writeTo(alll, 0, 0, 0, 200);
       writeTo(wave, 0, 0, V, 200);
     }
@@ -80,18 +80,19 @@ void loop() {
     }
   }
   if (maxHit > 20) {
-    Serial.println(maxPin);
+    Serial.println(maxPin + 1);
     peaks[maxPin] = now;
     lastPeak = now;
   }
+  for (int i = 0; i < NUMPIXELS; i++) hits[i] = now - peaks[i] < secondsAction;
 
   //write all (programs):
   H = BYTE * now;
-  if (program == 0) writeTo(alll, 1.0 * H, S, 0.5 * V);
-  if (program == 1) writeTo(alll,       0, S, 0.5 * V);
-  if (program == 2) writeTo(alll, 0.1 * H, S, 0.5 * V);
+  valueHitReducer = count(hits) ? 0.5 : 1.0;
+  if (program == 0) writeTo(alll, 1.0 * H, S, valueHitReducer * V);
+  if (program == 1) writeTo(alll,       0, S, valueHitReducer * V);
+  if (program == 2) writeTo(alll, 0.1 * H, S, valueHitReducer * V);
 
   //write active and wait for frame:
-  for (int i = 0; i < NUMPIXELS; i++) temp[i] = now - peaks[i] < secondsAction;
-  writeTo(temp, 0, 0, V, msPerFrame);
+  writeTo(hits, 0, 0, V, msPerFrame);
 }
