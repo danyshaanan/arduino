@@ -13,10 +13,14 @@
 #define S              255         // saturation out of 255
 
 int msPerFrame = 1000 / fps;
-float now, H, diff, value;
+float now;
+int H, maxHit, maxPin, hit;
 CRGB leds[NUMPIXELS];
 float peaks[NUMPIXELS];
-int reads[NUMPIXELS];
+int wave[NUMPIXELS];
+int temp[NUMPIXELS];
+int alll[NUMPIXELS];
+int none[NUMPIXELS];
 int threshold[NUMPIXELS] = { 40, 20, 20, 20, 25, 25, 30, 25, 30, 25, 35, 35 };
 //                            0   1   2   3   4   5   6   7   8   9  10  11
 int lastWave = 0;
@@ -24,7 +28,27 @@ int lastPeak = 0;
 
 /////////////////////////////////////////////////////
 
+void wait(int ms) {
+  delay(ms);
+  now += ms / 1000.0;
+}
+void writeTo(int wave[], int h = 0, int s = 0, int v = 0, int ms = 0) {
+  for (int i = 0; i < NUMPIXELS; i++) if (wave[i]) leds[i] = CHSV(h, s, v);
+  FastLED.show();
+  wait(ms);
+}
+int count(int arr[]) {
+  int c = 0;
+  for (int i = 0; i < NUMPIXELS; i++) if (arr[i]) c++;
+  return c;
+}
+/////////////////////////////////////////////////////
+
 void setup() {
+  for (int i = 0; i < NUMPIXELS; i++) {
+    none[i] = 0;
+    alll[i] = 1;
+  }
   now = 0.0;
   Serial.begin (9600);
   FastLED.addLeds<WS2812, DATAPIN>(leds, NUMPIXELS);
@@ -34,38 +58,35 @@ void loop() {
   H = BYTE * 1000.0 * now / periodInMs;
 
   //identify wave:
-  int peaksLately = 0;
-  for (int i = 0; i < NUMPIXELS; i++) {
-    if (now - 6 < peaks[i]) peaksLately++;
-  }
-  if (lastWave < now - 7 && lastPeak < now - 1 && peaksLately >= 5) {
+  for (int i = 0; i < NUMPIXELS; i++) wave[i] = now - 6 < peaks[i];
+  if (lastWave < now - 5 && lastPeak < now - 1 && count(wave) >= 4) {
     Serial.println("wave identified");
     lastWave = now;
-  }
-
-  //read:
-  for (int i = 0; i < NUMPIXELS; i++) {
-    reads[i] = analogRead(i + 1);
-    if (reads[i] > threshold[i]) {
-      Serial.println(i);
-      peaks[i] = now;
-      lastPeak = now;
+    writeTo(alll, 0, 0, 0);
+    for (int j = 0; j < 3; j++) {
+      writeTo(wave, 0, 0, V, 200);
+      writeTo(alll, 0, 0, 0, 200);
     }
   }
 
+  //read:
+  maxHit = 0;
+  for (int i = 0; i < NUMPIXELS; i++) {
+    hit = analogRead(i + 1) - threshold[i];
+    if (hit > maxHit) {
+      maxHit = hit;
+      maxPin = i;
+    }
+  }
+  if (maxHit) {
+    Serial.println(maxPin);
+    peaks[maxPin] = now;
+    lastPeak = now;
+  }
+
   //write all:
-  for (int i = 0; i < NUMPIXELS; i++) {
-    leds[i] = CHSV(1 * H, S, .2 * V);
-  }
-
-  //write hits:
-  for (int i = 0; i < NUMPIXELS; i++) {
-    if (now - peaks[i] < secondsAction) leds[i] = CHSV(8 * H, S, 1. * V);
-  }
-
-  //
-  
-  FastLED.show();
-  delay(msPerFrame);
-  now += msPerFrame / 1000.0;
+  for (int i = 0; i < NUMPIXELS; i++) temp[i] = now - peaks[i] < secondsAction;
+  writeTo(alll, 1 * H, S, 0.2 * V);
+  writeTo(temp, 8 * H, S, 1.0 * V);
+  wait(msPerFrame);
 }
