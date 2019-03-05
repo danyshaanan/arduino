@@ -5,16 +5,16 @@
 #define BYTE           255         // FastLED channels are all bytes
 #define DATAPIN        2           // data pin for led strip
 #define NUMPIXELS      12          // number of WS2812 leds
-#define fps            30          // frames per second
+#define fps            100         // frames per second
 #define periodInMs     8000.       // ms length of period
-#define sensitivity    50          // sensor threashold out of 1024
+#define sensitivity    30          // sensor threashold out of 1024
 #define secondsAction  1.0         // seconds for initial led response
-#define v              0.4         // light intensity out of 1
+#define v              1.0         // light intensity out of 1
 
 int msPerFrame = 1000 / fps;
 float s, hue, diff, value;
 CRGB leds[NUMPIXELS];
-float peak[NUMPIXELS] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+float peak[NUMPIXELS];
 
 
 /////////////////////////////////////////////////////
