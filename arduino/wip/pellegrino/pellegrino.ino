@@ -9,7 +9,7 @@
 #define secondsAction  1.0         // seconds for initial led response
 #define V              255         // light intensity out of 255
 #define S              255         // saturation out of 255
-#define NUMPROGRAMS    3
+#define NUMPROGRAMS    5
 #define DISABLEWAVE    false
 
 int msPerFrame = 1000 / fps;
@@ -51,15 +51,22 @@ int count(int arr[]) {
 void runProgram(int p) {
   H = BYTE * now;
   valueHitReducer = count(hits) ? 0.5 : 1.0;
+  if (p == 0) writeTo(alll, 1.0 * H, S, valueHitReducer * V);
 
-  if (p == 0) {
-    writeTo(alll, 1.0 * H, S, valueHitReducer * V);
-  }
+  // WIP:
   if (p == 1) {
-    writeTo(alll, 0.1 * H, S, 0.5 * V);
-    int bottles = 12;
-    int bottle = abs(((int)(8 * (now + 0 * sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2);
-    leds[bottle] = CHSV(0, 0, valueHitReducer * V);
+    writeTo(alll, 0, 0, 0);
+    int bottles = count(wave);
+    int bottle = abs(((int)(4 * (now + sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2) + 1;
+    int bottleCounter = 0;
+    int j;
+    for (j = 0; j < NUMPIXELS; j++) {
+      if (wave[j]) {
+        leds[j] = CHSV(0, S, V);
+        bottleCounter++;
+      }
+      if (bottleCounter == bottle) break;
+    }
   }
   if (p == 2) {
     writeTo(alll, 0, 0, 0);
@@ -73,7 +80,17 @@ void runProgram(int p) {
     }
     leds[j] = CHSV(0, S, V);
   }
-  
+  if (p == 3) {
+    writeTo(alll, 0.1 * H, S, 0.5 * V);
+    int bottles = 12;
+    int bottle = abs(((int)(8 * now) % (2 * bottles - 2)) - bottles + 2);
+    leds[bottle] = CHSV(0, 0, valueHitReducer * V);
+  }
+  if (p == 4) {
+    writeTo(alll, 0.1 * H, S, 0.5 * V);
+    int bottle = (int)(8 * now) % 24;
+    for (int i = bottle - 12; i <= bottle; i++) if (0 <= i && i < 12) leds[i] = CHSV(0, 0, valueHitReducer * V);
+  }
 }
 
 /////////////////////////////////////////////////////
