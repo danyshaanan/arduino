@@ -120,6 +120,10 @@ void loop() {
       writeTo(wave, 0, 0, V, 200);
     }
   }
+  if (lastWave < now - 60) {
+    lastWave = now;
+    program = (program + 1) % NUMPROGRAMS;    
+  }
 
   //read:
   maxHit = 0;
