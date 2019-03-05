@@ -9,7 +9,7 @@
 #define secondsAction  1.0         // seconds for initial led response
 #define V              255         // light intensity out of 255
 #define S              255         // saturation out of 255
-#define NUMPROGRAMS    5
+#define NUMPROGRAMS    8
 #define DISABLEWAVE    false
 
 int msPerFrame = 1000 / fps;
@@ -18,7 +18,7 @@ int H, maxHit, maxPin, hit;
 CRGB leds[NUMPIXELS];
 float peaks[NUMPIXELS];
 int temp[NUMPIXELS];
-int wave[NUMPIXELS];
+int wave[NUMPIXELS] = { 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0 };
 int hits[NUMPIXELS];
 int alll[NUMPIXELS];
 int none[NUMPIXELS];
@@ -50,24 +50,15 @@ int count(int arr[]) {
 
 void runProgram(int p) {
   H = BYTE * now;
-  valueHitReducer = count(hits) ? 0.5 : 1.0;
+  valueHitReducer = count(hits) ? 0.1 : 1.0;
   if (p == 0) writeTo(alll, 1.0 * H, S, valueHitReducer * V);
+//  if (p == 0) for (int i = 0; i < NUMPIXELS; i++) leds[i] = CHSV(255.0 / 12.0 * i, S, V); // color test
 
   // WIP:
-  if (p == 1) {
-    writeTo(alll, 0, 0, 0);
-    int bottles = count(wave);
-    int bottle = abs(((int)(4 * (now + sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2) + 1;
-    int bottleCounter = 0;
-    int j;
-    for (j = 0; j < NUMPIXELS; j++) {
-      if (wave[j]) {
-        leds[j] = CHSV(0, S, V);
-        bottleCounter++;
-      }
-      if (bottleCounter == bottle) break;
-    }
+  if (p == 0) {
+    
   }
+
   if (p == 2) {
     writeTo(alll, 0, 0, 0);
     int bottles = count(wave);
@@ -91,6 +82,32 @@ void runProgram(int p) {
     int bottle = (int)(8 * now) % 24;
     for (int i = bottle - 12; i <= bottle; i++) if (0 <= i && i < 12) leds[i] = CHSV(0, 0, valueHitReducer * V);
   }
+  if (p == 5) {
+    writeTo(alll, 0, 0, 0);
+    int bottles = count(wave);
+    int bottle = abs(((int)(4 * (now + sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2) + 1;
+    int bottleCounter = 0;
+    int j;
+    for (j = 0; j < NUMPIXELS; j++) {
+      if (wave[j]) {
+        leds[j] = CHSV(0, S, V);
+        bottleCounter++;
+      }
+      if (bottleCounter == bottle) break;
+    }
+  }
+  if (p == 6) {
+    for (int i = 0; i < NUMPIXELS; i++) leds[i] = CHSV(255.0 / 12.0 * (i + 4 * now), S, V);
+  }
+  if (p == 7) {
+    int blue = 255.0 * 11.0 / 12.0;
+    writeTo(alll, 0, 0, 0);
+    int inner[4] = { 3, 6, 8, 5 };
+    int outer[8] = { 0, 1, 2, 7, 11, 10, 9, 4 };
+    leds[inner[(int)(3200 + 128 * 1 * cos(.1 * now) + 0) % 4]] = CHSV(blue, S, 1.00 * valueHitReducer * V);
+    leds[outer[(int)(3200 + 128 * 2 * cos(.1 * now) + 0) % 8]] = CHSV(blue, S, 0.40 * valueHitReducer * V);
+    leds[outer[(int)(3200 + 128 * 2 * cos(.1 * now) + 1) % 8]] = CHSV(blue, S, 1.00 * valueHitReducer * V);
+  }
 }
 
 /////////////////////////////////////////////////////
@@ -104,7 +121,7 @@ void setup() {
   }
   FastLED.addLeds<WS2812, DATAPIN>(leds, NUMPIXELS);
   Serial.begin (9600);
-  delay(5000);
+  delay(1000);
 }
 
 void loop() {
