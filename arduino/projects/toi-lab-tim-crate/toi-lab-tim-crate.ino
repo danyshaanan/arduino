@@ -14,7 +14,7 @@
 
 int msPerFrame = 1000 / fps;
 float now, valueHitReducer;
-int H, maxHit, maxPin, hit;
+int H, maxHit, maxPin, hit, red;
 CRGB leds[NUMPIXELS];
 float peaks[NUMPIXELS];
 int temp[NUMPIXELS];
@@ -51,14 +51,15 @@ int count(int arr[]) {
 void runProgram(int p) {
   H = BYTE * now;
   valueHitReducer = count(hits) ? 0.1 : 1.0;
+  red = 255.0 * 5.0 / 12.0;
 //  if (p == 0) for (int i = 0; i < NUMPIXELS; i++) leds[i] = CHSV(255.0 / 12.0 * i, S, V); // color test
 
   if (p == 0) { // sunrise
-    for (int i = 0; i < NUMPIXELS; i++) leds[i] = CHSV(255.0 / 12.0 * (i + 4 * now), S, V);
+    for (int i = 0; i < NUMPIXELS; i++) leds[i] = CHSV(255.0 / 12.0 * (i + 4 * now), S, valueHitReducer * V);
   }
 
   if (p == 1) { // path ping ping
-    writeTo(alll, 0, 0, 0);
+    writeTo(alll, red, S, valueHitReducer * V);
     int bottles = count(wave);
     int bottle = abs(((int)(4 * (now + sin(3.2 * now))) % (2 * bottles - 2)) - bottles + 2) + 1;
     int bottleCounter = 0;
@@ -67,11 +68,11 @@ void runProgram(int p) {
       if (wave[j]) bottleCounter++;
       if (bottleCounter == bottle) break;
     }
-    leds[j] = CHSV(0, S, V);
+    leds[j] = CHSV(0, S, valueHitReducer * V);
   }
 
   if (p == 2) { // upwards flood
-    writeTo(alll, 0.1 * H, S, 0.5 * V);
+    writeTo(alll, 0.1 * H, S, 0.5 * valueHitReducer * V);
     int bottle = (int)(8 * now) % 24;
     for (int i = bottle - 12; i <= bottle; i++) if (0 <= i && i < 12) leds[i] = CHSV(0, 0, valueHitReducer * V);
   }
@@ -79,7 +80,7 @@ void runProgram(int p) {
   if (p == 3) { // yellow blue lights
     int yellow = 256.0 * 4.0 / 12.0;
     int purple = 256.0 * 10.0 / 12.0;
-    int perm[NUMPIXELS] = { 8, 5, 1, 7, 4, 2, 11, 0, 9, 3, 10, 6 };
+    int perm[NUMPIXELS] = { 2, 5, 11, 1, 9, 7, 4, 0, 10, 3, 8, 6 };
     writeTo(alll, yellow, S, valueHitReducer * V);
     int bottle = (int)(12 * now) % 24;
     for (int i = bottle - 12; i <= bottle; i++) if (0 <= i && i < 12) leds[perm[i]] = CHSV(purple, S, valueHitReducer * V);
@@ -87,7 +88,7 @@ void runProgram(int p) {
   
   if (p == 4) { // clock
     int blue = 255.0 * 11.0 / 12.0;
-    writeTo(alll, 0, 0, 0);
+    writeTo(alll, red, S, valueHitReducer * V);
     int inner[4] = { 3, 6, 8, 5 };
     int outer[8] = { 0, 1, 2, 7, 11, 10, 9, 4 };
     leds[inner[(int)(3200 + 128 * 1 * cos(.1 * now) + 0) % 4]] = CHSV(blue, S, 1.00 * valueHitReducer * V);
@@ -100,8 +101,7 @@ void runProgram(int p) {
   }
   
   if (p == 6) { // all ping pong
-    int pink = 255.0 * 5.0 / 12.0;
-    writeTo(alll, pink, S, valueHitReducer * V);
+    writeTo(alll, red, S, valueHitReducer * V);
     int bottles = 12;
     int bottle = abs(((int)(8 * now) % (2 * bottles - 2)) - bottles + 2);
     leds[bottle] = CHSV(0, 0, valueHitReducer * V);
