@@ -11,6 +11,7 @@
 #define S              255         // saturation out of 255
 #define NUMPROGRAMS    7
 #define DISABLEWAVE    false
+#define autoSwitchSecs 30
 
 int msPerFrame = 1000 / fps;
 float now, valueHitReducer;
@@ -136,8 +137,8 @@ void loop() {
       writeTo(wave, 0, 0, V, 200);
     }
   }
-  if (lastWave < now - 30) {
-    lastWave = now;
+  if (lastWave + 6 < now - autoSwitchSecs) {
+    lastWave = now - 6;
     program = (program + 1) % NUMPROGRAMS;    
   }
 
